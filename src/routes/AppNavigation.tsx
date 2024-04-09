@@ -18,7 +18,7 @@ export default function AppNavigation() {
       >
         <Stack.Screen name="Inicio" component={InicioScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="Profile" component={ProfileScreen} />
+        <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false}} />
         <Stack.Screen name="Main" component={MainScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Register" component={RegisterScreen} options={{ title: "Sign Up" }} />
         <Stack.Screen name="Chat" component={ChatScreen}  />

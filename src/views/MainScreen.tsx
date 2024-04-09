@@ -63,7 +63,7 @@ export default function Component({ navigation, route }: any) {
           />
         </View>
       </View>
-      <NavigationFooter />
+      <NavigationFooter navigation={navigation}/>
     </View>
   );
 }
@@ -71,7 +71,6 @@ export default function Component({ navigation, route }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    borderLeftWidth: 1,
   },
   header: {
     flexDirection: 'row',

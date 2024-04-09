@@ -1,18 +1,18 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 
-export function NavigationFooter() {
+export function NavigationFooter({ navigation, route }: any) {
   return (
     <View style={styles.footer}>
       <TouchableOpacity style={styles.iconContainer} onPress={() => console.log('Settings pressed')}>
         <Image source={require('../assets/iconSettings.png')} style={styles.icon} />
         <Text style={styles.text}>Settings</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.iconContainer} onPress={() => console.log('Messages pressed')}>
+      <TouchableOpacity style={styles.iconContainer} onPress={() => navigation.navigate("Main")}>
         <Image source={require('../assets/iconMessage.png')} style={styles.icon} />
         <Text style={styles.text}>Messages</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.iconContainer} onPress={() => console.log('Profile pressed')}>
+      <TouchableOpacity style={styles.iconContainer} onPress={() => navigation.navigate("Profile")}>
         <Image source={require('../assets/iconMiPerfil.png')} style={styles.iconProfile} />
         <Text style={styles.text}>Profile</Text>
       </TouchableOpacity>

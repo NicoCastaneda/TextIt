@@ -1,35 +1,32 @@
-import { View, Text, TouchableOpacity, ImageBackground, TextInput, StyleSheet, Image } from 'react-native'
+import { View, Text, TouchableOpacity, ImageBackground, TextInput, StyleSheet, Image, Alert } from 'react-native'
 import React, { useContext } from 'react'
 import { AuthContext } from '../context/AuthContext'
-
-/*
-export default function LoginScreen({ navigation, route }: any) {
-
-  const { state } = useContext(AuthContext)
-
-  return (
-    <View>
-      <Text>LoginScreen</Text>
-      <TouchableOpacity
-        onPress={() => navigation.navigate("Profile")}>
-        <View>
-          <Text style={{ color: "white" }}>IR A PERFIL</Text>
-        </View>
-
-      </TouchableOpacity>
-
-
-      <View>
-        <Text style={{ fontWeight: 'bold', fontSize: 25, color: "black" }}>Email: {state.email}</Text>
-
-      </View>
-    </View>
-
-  )
-}
-*/
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginScreen({ navigation, route }: any) {
+  
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+
+  const showAuthAlert = () => {
+    Alert.alert(
+      "Error",
+      "User not found. Please check your email and password or register a new account.",
+      [{ text: "OK" }]
+    );
+  }
+
+  const login = async () => {
+    const users = JSON.parse(await AsyncStorage.getItem('users') || '[]');
+    const user = users.find((user: any) => user.email === email && user.password === password);
+
+    if (user) {
+        navigation.navigate("Main");
+    } else {
+        showAuthAlert();
+    }
+  };
+  
   return (
           <View style={styles.container}>
             <Image
@@ -39,25 +36,30 @@ export default function LoginScreen({ navigation, route }: any) {
         
               <View style={styles.cardHeader}>
                   <Text style={styles.cardTitle}>Login</Text>
-                  <Text style={styles.cardDescription}>Enter your phone or name and password </Text>
+                  <Text style={styles.cardDescription}>Enter your email and password </Text>
               </View>
               <View style={styles.cardContent}>
                   <View style={styles.inputContainer}>
                       <TextInput
                           style={styles.input}
-                          placeholder='Phone number or name'
+                          onChangeText={setEmail}
+                          placeholder='Email'
+                          value={email}
                           placeholderTextColor={'gray'}
                       />
                       <TextInput
                           style={styles.input}
+                          onChangeText={setPassword}
                           placeholder='Password'
+                          value={password}
                           placeholderTextColor={'gray'}
+                          secureTextEntry
                       />
                   </View>
               </View>
               <View style={styles.cardFooter}>
                   <TouchableOpacity style={styles.button}
-                   onPress={() => navigation.navigate("Main")}>
+                   onPress={login}>
                       <Text style={styles.buttonText}>Login</Text>
                   </TouchableOpacity>
               </View>

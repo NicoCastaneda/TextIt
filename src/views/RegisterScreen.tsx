@@ -1,6 +1,7 @@
 import { View, Text, TouchableOpacity, TextInput, StyleSheet, Alert, Modal } from 'react-native'
 import React, { useContext, useState } from 'react'
 import { AuthContext } from '../context/AuthContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 export default function RegisterScreen({ navigation, route }: any) {
@@ -14,14 +15,19 @@ export default function RegisterScreen({ navigation, route }: any) {
     const [secCode, setSecCode] = useState('');
 
     // crear un usuario y actualizar el estado
-    const registro = () => {
+    const registro = async () => {
         onChange(name, phone, email, password, secCode)
 
         if (secCode !== '1234') {
             showAlert();
         }
         else {
-            navigation.navigate("Main")
+            const newUser = { name, phone, email, password };
+            const users = JSON.parse(await AsyncStorage.getItem('users') || '[]');
+            users.push(newUser);
+            await AsyncStorage.setItem('users', JSON.stringify(users));
+
+            navigation.navigate("Login")
         }
     };
 

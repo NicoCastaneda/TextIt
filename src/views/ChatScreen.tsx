@@ -18,7 +18,7 @@ export default function ChatBot({ navigation, route }: any) {
 
     const API_KEY = 'AIzaSyBD9a96gRkiTsbnL9ExCBRVyLJaotFGvL8';
     
-    const instruccion = "toma el rol de mi esposa, actua como tal en el chat: ";
+    const instruccion = "toma el rol de mi vecina lucia, actua como tal en el chat. Solo debes responder con lo que responderia esa persona, con respuestas muy cortas y simples.";
 
     const handleUserInput = async () => {
         const userInputWithInstruction = instruccion + userInput;
@@ -38,7 +38,7 @@ export default function ChatBot({ navigation, route }: any) {
                 {
                     contents: [
                         {
-                           role: "user",
+                            role: "user",
                             parts: [{ text: userInputWithInstruction }], 
                         }      
                     ]
@@ -89,7 +89,7 @@ export default function ChatBot({ navigation, route }: any) {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>ChatBot</Text>
+            <Text style={styles.title}>Chat</Text>
             <FlatList
                 data={chat}
                 renderItem={renderChatItem}
