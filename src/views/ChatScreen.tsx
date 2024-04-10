@@ -1,8 +1,9 @@
 import axios from "axios";
 //import { isSpeakingAsync, speak, stop } from "expo-speech";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { ChatBubble } from '../components/ChatBubble';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface ChatMessage {
     role: string;
@@ -15,21 +16,54 @@ export default function ChatBot({ navigation, route }: any) {
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     //const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
-
+    const { chatId } = route.params;
     const API_KEY = 'AIzaSyBD9a96gRkiTsbnL9ExCBRVyLJaotFGvL8';
-    
-    const instruccion = "toma el rol de mi vecina lucia, actua como tal en el chat. Solo debes responder con lo que responderia esa persona, con respuestas muy cortas y simples.";
 
+    useEffect(() => {
+        const loadChatHistory = async () => {
+            const storedChats = await AsyncStorage.getItem('chats');
+            if (storedChats) {
+                const chats = JSON.parse(storedChats);
+                const chatHistory = chats[chatId];
+                if (chatHistory){
+                    setChat(chatHistory);
+                } else{
+                    setChat([]);
+                }
+            } else{
+                setChat([]);
+            }
+        };
+
+        loadChatHistory();
+    }, []);
+
+    useEffect(() => {
+        const saveChatToStorage = async () => {
+            try {
+                const storedChats = await AsyncStorage.getItem('chats');
+                let chats = [];
+                if (storedChats) {
+                    chats = JSON.parse(storedChats);
+                }
+                chats[chatId] = chat;
+                await AsyncStorage.setItem('chats', JSON.stringify(chats));
+            } catch (error) {
+                console.error('Error saving chat to AsyncStorage:', error);
+            }
+        };
+
+        saveChatToStorage();
+    }, [chat]);
+
+    const instruccion = "Tomarás un rol aleatorio para un chat de las siguientes opciones 1.Amigos 2.Compañeros de trabajo 3.comercio 4.clientes 5.vecinos 6.novia/esposa 7.hijos 8.otra familia(tios, primos, etc). Solo debes responder únicamemte con lo que responderia esa persona, nunca un 'este es mi rol' o '(vecino)', etc. Deberán ser respuestas cortas y sencillas, a veces amigables, a veces seco, recuerda que lo importante es la espontaneidad. Deberás mantener tu rol durante toda la conversación. No debes cambiar de rol una vez lo escojas por primera vez, tampoco debes agregar quien eres y que rol tomaste a menos que te lo pregunte y de igual forma deberas responder de acuerdo al tono y el contexto de la conversación. Mensaje: ";
     const handleUserInput = async () => {
         const userInputWithInstruction = instruccion + userInput;
-        const updatedChatWithUserInput: ChatMessage[] = [
-            ...chat,
-            {
-                role: "user",
-                parts: [{ text: userInput }], 
-            },
-        ];
-   
+        const updatedChatWithUserInput: ChatMessage = {
+            role: "user",
+            parts: [{ text: userInput }],
+        };
+
         setLoading(true);
 
         try {
@@ -39,8 +73,8 @@ export default function ChatBot({ navigation, route }: any) {
                     contents: [
                         {
                             role: "user",
-                            parts: [{ text: userInputWithInstruction }], 
-                        }      
+                            parts: [{ text: userInputWithInstruction }],
+                        }
                     ]
                 }
             );
@@ -48,15 +82,9 @@ export default function ChatBot({ navigation, route }: any) {
             const modelResponse = response.data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
             if (modelResponse) {
-                const updatedChatWithModel: ChatMessage[] = [
-                    ...updatedChatWithUserInput,
-                    {
-                        role: "model",
-                        parts: [{ text: modelResponse }],
-                    },
-                ];
+                // Comprobamos si chat es un array antes de actualizar el estado
+                setChat(prevChat => Array.isArray(prevChat) ? [...prevChat, updatedChatWithUserInput, { role: "model", parts: [{ text: modelResponse }] }] : [updatedChatWithUserInput, { role: "model", parts: [{ text: modelResponse }] }]);
 
-                setChat(updatedChatWithModel);
                 setUserInput("");
             }
         } catch (error: any) {
@@ -80,12 +108,20 @@ export default function ChatBot({ navigation, route }: any) {
         }
     };*/
 
-    const renderChatItem = ({ item }: { item: ChatMessage }) => (
-        <ChatBubble
-            role={item.role}
-            text={item.parts[0].text}
-        />
-    );
+    const renderChatItem = ({ item }: { item: ChatMessage }) => {
+        // Verificar que 'parts' sea un array y tenga al menos un elemento
+        if (Array.isArray(item.parts) && item.parts.length > 0) {
+            return (
+                <ChatBubble
+                    role={item.role}
+                    text={item.parts[0].text}
+                />
+            );
+        } else {
+            // Manejar el caso en el que 'parts' no sea un array o esté vacío
+            return null; // o un mensaje de error, según sea necesario
+        }
+    };
 
     return (
         <View style={styles.container}>

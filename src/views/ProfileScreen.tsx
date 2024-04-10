@@ -6,6 +6,7 @@ import { NavigationFooter } from '../components/NavigationFooter';
 export default function ProfileScreen({ navigation, route }: any) {
   const { state } = useContext(AuthContext);
 
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>

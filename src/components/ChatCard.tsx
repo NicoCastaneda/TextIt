@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
 
-interface ChatCradProps {
+export interface ChatCardProps {
     sender: string;
     time: string;
     message: string;
@@ -9,7 +9,7 @@ interface ChatCradProps {
     
 }
 
-export function ChatCard({ sender, time, message, avatarSource }: ChatCradProps) {
+export function ChatCard({ sender, time, message, avatarSource }: ChatCardProps) {
   return (
     <View style={styles.chat}>
       <Image source={avatarSource} style={styles.avatar} />

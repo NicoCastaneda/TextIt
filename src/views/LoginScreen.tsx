@@ -7,6 +7,7 @@ export default function LoginScreen({ navigation, route }: any) {
   
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
+  const {state, onChange} = useContext(AuthContext);
 
   const showAuthAlert = () => {
     Alert.alert(
@@ -21,6 +22,7 @@ export default function LoginScreen({ navigation, route }: any) {
     const user = users.find((user: any) => user.email === email && user.password === password);
 
     if (user) {
+        onChange(user.name, user.phone, user.email, user.password, user.secCode);
         navigation.navigate("Main");
     } else {
         showAuthAlert();
