@@ -5,10 +5,10 @@ import React from 'react'
 interface ChatBubbleProps {
     role: string;
     text: string;
-   // onSpeech: () => void;
+    // onSpeech: () => void;
 }
 
-export function ChatBubble({ role, text, /*onSpeech */}: ChatBubbleProps): JSX.Element {
+export function ChatBubble({ role, text, /*onSpeech */ }: ChatBubbleProps): JSX.Element {
     return (
         <View
             style={[styles.chatItem, role === "user" ? styles.userChat : styles.modelChat]}

@@ -10,7 +10,7 @@ export default function ProfileScreen({ navigation, route }: any) {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <Text style={styles.title}>Your TextIt Profile</Text>
+        <Text style={styles.title}>Your TextIt Profile</Text>
         <Image source={require('../assets/iconPerfil.png')} style={styles.profilePic} />
         <View style={styles.infoContainer}>
           <Text style={styles.label}>Name</Text>
@@ -25,7 +25,7 @@ export default function ProfileScreen({ navigation, route }: any) {
           <Text style={styles.value}>{state.email}</Text>
         </View>
       </ScrollView>
-      <NavigationFooter navigation={navigation}/>
+      <NavigationFooter navigation={navigation} />
     </View>
   );
 }

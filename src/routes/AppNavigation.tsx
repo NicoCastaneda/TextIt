@@ -21,7 +21,7 @@ export default function AppNavigation() {
         <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false}} />
         <Stack.Screen name="Main" component={MainScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Register" component={RegisterScreen} options={{ title: "Sign Up" }} />
-        <Stack.Screen name="Chat" component={ChatScreen}  />
+        <Stack.Screen name="Chat" component={ChatScreen} options={{ headerShown: false}} />
 
       </Stack.Navigator>
     }</NavigationContainer>

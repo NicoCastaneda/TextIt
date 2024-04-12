@@ -1,17 +1,17 @@
 import { AuthState } from './AuthContext';
 
-type AuthActions = 
-{type: "onChange", payload: {name: string, phone: string, email: string}} |
-{type: "changeName", payload: string} |
-{type: "changePhone", payload: string} |
-{type: "changeEmail", payload: string}
+type AuthActions =
+    { type: "onChange", payload: { name: string, phone: string, email: string } } |
+    { type: "changeName", payload: string } |
+    { type: "changePhone", payload: string } |
+    { type: "changeEmail", payload: string }
 
 
 export const authReducer = (state: AuthState, action: AuthActions) => {
 
-    switch(action.type){
+    switch (action.type) {
         case "onChange":
-            return {...state, ...action.payload}
+            return { ...state, ...action.payload }
         case "changeName":
             return {
                 ...state,
@@ -28,5 +28,5 @@ export const authReducer = (state: AuthState, action: AuthActions) => {
                 email: action.payload
             }
     }
-   
+
 }

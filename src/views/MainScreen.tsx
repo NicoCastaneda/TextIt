@@ -9,21 +9,25 @@ export default function MainScreen({ navigation, route }: any) {
   const [chats, setChats] = useState<ChatCardProps[]>([])
   const [modalVisible, setModalVisible] = useState(false);
   const [chatName, setChatName] = useState('');
+  const [lastMessage, setLastMessage] = useState<string>('');
 
   useEffect(() => {
-    const loadChats = async () => {
-      const storedChats = await AsyncStorage.getItem('chats');
+    if (route.params?.lastMessage !== undefined && route.params?.chatId !== undefined) {
+      console.log('last message:', route.params.lastMessage);
+      const updatedChats = chats.map((chat, index) => {
+        if (index === route.params.chatId) {
+          return { ...chat, lastMessage: route.params.lastMessage };
+        }
+        return chat;
+      });
+      setChats(updatedChats);
+    }
+  }, [route.params?.lastMessage]);
 
-      if (storedChats) {
-        setChats(JSON.parse(storedChats));
-      }
-      else{
-        setChats([]);
-      }
-    };
-
-    loadChats();
-  }, []);
+  const deleteChat = (chatIndex: number) => {
+    const updatedChats = chats.filter((_, index) => index !== chatIndex);
+    setChats(updatedChats);
+  };
 
   return (
     <View style={styles.container}>
@@ -40,30 +44,30 @@ export default function MainScreen({ navigation, route }: any) {
           </TouchableOpacity>
 
         </View>
-        <View style={styles.iconContainer}>
-          <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate("Chat")}>
-            <Image source={require('../assets/iconSearch.png')} style={styles.icon} />
-          </TouchableOpacity>
-
-        </View>
       </View>
       <View style={styles.content}>
         <View style={styles.chatContainer}>
           <ScrollView contentContainerStyle={styles.scrollContainer}>
             {chats.map((chat, index) => (
-              <TouchableOpacity key={index} onPress={() => navigation.navigate('Chat', { chatId: index })}>
-              <ChatCard
-                sender={chat.sender}
-                time={chat.time}
-                message={chat.message}
-                avatarSource={require('../assets/iconPerfil.png')}
-              />
-            </TouchableOpacity>
+              <TouchableOpacity key={index} onPress={() => navigation.navigate('Chat', { chatId: index, chatTitle: chat.sender, lastMessage: chat.lastMessage })}>
+                <ChatCard
+
+                  sender={chat.sender}
+                  time={chat.time}
+                  message={chat.message}
+                  lastMessage={lastMessage}
+                  avatarSource={require('../assets/iconPerfil.png')}
+                  onDelete={() => deleteChat(index)}
+                />
+              </TouchableOpacity>
             ))}
           </ScrollView>
         </View>
       </View>
-      <Button title="+" onPress={() => setModalVisible(true)} />
+      <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.addChat}>
+        <Text style={styles.addChatText}>+</Text>
+      </TouchableOpacity>
+
       <NavigationFooter navigation={navigation} />
 
       <Modal
@@ -81,29 +85,28 @@ export default function MainScreen({ navigation, route }: any) {
               placeholder="Enter chat name"
               onChangeText={text => setChatName(text)}
             />
-            <Button
-              title="Add Chat"
-              onPress={async () => {
-                // Crea un nuevo chat con el nombre ingresado por el usuario
-                const newChat = {
-                  sender: chatName,
-                  time: new Date().toISOString(),
-                  message: '',
-                  avatarSource: require('../assets/iconPerfil.png'),
-                };
+            <TouchableOpacity style={styles.modalButton} onPress={async () => {
+              // Crea un nuevo chat con el nombre ingresado por el usuario
+              const newChat = {
+                sender: chatName,
+                time: new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true }),
+                message: '',
+                avatarSource: require('../assets/iconPerfil.png'),
+              };
 
-                // Añade el nuevo chat al estado
-                const updatedChats = [...(chats || []), newChat];
-                setChats(updatedChats);
+              // Añade el nuevo chat al estado
+              const updatedChats = [...(chats || []), newChat];
+              setChats(updatedChats);
 
-                // Guarda los chats actualizados en AsyncStorage
-                await AsyncStorage.setItem('chats', JSON.stringify(updatedChats));
+              // Guarda los chats actualizados en AsyncStorage
+              await AsyncStorage.setItem('chats', JSON.stringify(updatedChats));
 
-                // Limpia el nombre del chat y cierra el modal
-                setChatName('');
-                setModalVisible(false);
-              }}
-            />
+              // Limpia el nombre del chat y cierra el modal
+              setChatName('');
+              setModalVisible(false);
+            }}>
+              <Text style={styles.modalButtonText}>Create Chat</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -175,7 +178,40 @@ const styles = StyleSheet.create({
     elevation: 5
   },
   modalText: {
-    marginBottom: 15,
-    textAlign: "center"
+    marginBottom: 25,
+    fontSize: 20,
+    textAlign: "center",
+    borderColor: 'gray',
+    borderWidth: 0.5,
+    borderRadius: 10,
+    width: 200,
+  },
+  modalButton: {
+    padding: 10,
+    backgroundColor: '#0C1033',
+    borderRadius: 15,
+    paddingHorizontal: 40,
+  },
+  modalButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  addChat: {
+    position: 'absolute',
+    right: 20,
+    bottom: 100,
+    backgroundColor: '#0C1033',
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addChatText: {
+    flex: 1,
+    color: 'white',
+    fontSize: 35,
+
   }
 });

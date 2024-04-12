@@ -1,15 +1,16 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 
 export interface ChatCardProps {
-    sender: string;
-    time: string;
-    message: string;
-    avatarSource: any;
-    
+  sender: string;
+  time: string;
+  message: string;
+  lastMessage?: string;
+  avatarSource: any;
+  onDelete?: () => void;
 }
 
-export function ChatCard({ sender, time, message, avatarSource }: ChatCardProps) {
+export function ChatCard({ sender, time, message, lastMessage, avatarSource, onDelete }: ChatCardProps) {
   return (
     <View style={styles.chat}>
       <Image source={avatarSource} style={styles.avatar} />
@@ -18,8 +19,14 @@ export function ChatCard({ sender, time, message, avatarSource }: ChatCardProps)
           <Text style={styles.sender}>{sender}</Text>
           <Text style={styles.time}>{time}</Text>
         </View>
-        <Text style={styles.message}>{message}</Text>
+
+        {lastMessage && (
+          <Text style={styles.lastMessage}>{lastMessage}</Text>
+        )}
       </View>
+      <TouchableOpacity onPress={onDelete} style={styles.deleteButton}>
+        {onDelete && <Image source={require('../assets/iconDelete.png')} style={styles.delIcon} />}
+      </TouchableOpacity>
     </View>
   );
 }
@@ -48,13 +55,28 @@ const styles = StyleSheet.create({
   },
   sender: {
     fontWeight: 'bold',
-    fontSize: 16,
-    color: 'black'
+    fontSize: 20,
+    color: 'black',
   },
   time: {
     fontSize: 12,
   },
+
+  deleteButton: {
+    backgroundColor: '#0C1033',
+    padding: 8,
+    borderRadius: 50,
+    marginLeft: 15,
+  },
+  delIcon: {
+    width: 20,
+    height: 20,
+  },
   message: {
-    fontSize: 14,
+    fontSize: 16,
+  },
+  lastMessage: {
+    fontSize: 16,
+    color: 'rgba(128, 128, 128, 1)',
   },
 });

@@ -1,7 +1,6 @@
 import axios from "axios";
-//import { isSpeakingAsync, speak, stop } from "expo-speech";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { ChatBubble } from '../components/ChatBubble';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -10,14 +9,22 @@ interface ChatMessage {
     parts: { text: string }[];
 }
 
-export default function ChatBot({ navigation, route }: any) {
+export default function ChatScreen({ navigation, route }: any) {
     const [chat, setChat] = useState<ChatMessage[]>([]);
     const [userInput, setUserInput] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+    const [lastMessages, setLastMessages] = useState<{ [key: string]: string }>({});
+    const [lastMessage, setLastMessage] = useState<string | undefined>(route.params.lastMessage);
     //const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
-    const { chatId } = route.params;
+    const { chatId, chatTitle } = route.params;
     const API_KEY = 'AIzaSyBD9a96gRkiTsbnL9ExCBRVyLJaotFGvL8';
+
+    useEffect(() => {
+        if (route.params?.lastMessage !== undefined) {
+            setLastMessage(route.params.lastMessage);
+        }
+    }, [route.params?.lastMessage]);
 
     useEffect(() => {
         const loadChatHistory = async () => {
@@ -25,17 +32,19 @@ export default function ChatBot({ navigation, route }: any) {
             if (storedChats) {
                 const chats = JSON.parse(storedChats);
                 const chatHistory = chats[chatId];
-                if (chatHistory){
+                if (chatHistory) {
                     setChat(chatHistory);
-                } else{
+                } else {
                     setChat([]);
                 }
-            } else{
+            } else {
                 setChat([]);
             }
         };
 
         loadChatHistory();
+
+
     }, []);
 
     useEffect(() => {
@@ -56,7 +65,7 @@ export default function ChatBot({ navigation, route }: any) {
         saveChatToStorage();
     }, [chat]);
 
-    const instruccion = "Tomarás un rol aleatorio para un chat de las siguientes opciones 1.Amigos 2.Compañeros de trabajo 3.comercio 4.clientes 5.vecinos 6.novia/esposa 7.hijos 8.otra familia(tios, primos, etc). Solo debes responder únicamemte con lo que responderia esa persona, nunca un 'este es mi rol' o '(vecino)', etc. Deberán ser respuestas cortas y sencillas, a veces amigables, a veces seco, recuerda que lo importante es la espontaneidad. Deberás mantener tu rol durante toda la conversación. No debes cambiar de rol una vez lo escojas por primera vez, tampoco debes agregar quien eres y que rol tomaste a menos que te lo pregunte y de igual forma deberas responder de acuerdo al tono y el contexto de la conversación. Mensaje: ";
+    const instruccion = "Tomarás un rol aleatorio para un chat de las siguientes opciones 1.Amigos 2.Compañeros de trabajo 3.comercio 4.clientes 5.vecinos 6.novia/esposa 7.hijos 8.otra familia(tios, primos, etc). Solo debes responder únicamemte con lo que responderia esa persona, nunca un 'este es mi rol' o '(vecino)', etc. Deberán ser respuestas cortas y sencillas, a veces amigables, a veces seco, recuerda que lo importante es la espontaneidad. Deberás mantener tu rol durante toda la conversación. No debes cambiar de rol una vez lo escojas por primera vez, tampoco debes agregar quien eres y que rol tomaste a menos que te lo pregunte y de igual forma deberas responder de acuerdo al tono y el contexto de la conversación, puedes proponer tema de conversación simulando eventos pasados o futuros, o puedes simplemente responder al mensaje. Mensaje: ";
     const handleUserInput = async () => {
         const userInputWithInstruction = instruccion + userInput;
         const updatedChatWithUserInput: ChatMessage = {
@@ -82,10 +91,20 @@ export default function ChatBot({ navigation, route }: any) {
             const modelResponse = response.data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
             if (modelResponse) {
-                // Comprobamos si chat es un array antes de actualizar el estado
-                setChat(prevChat => Array.isArray(prevChat) ? [...prevChat, updatedChatWithUserInput, { role: "model", parts: [{ text: modelResponse }] }] : [updatedChatWithUserInput, { role: "model", parts: [{ text: modelResponse }] }]);
-
+                setChat(prevChat => {
+                    const updatedChat = Array.isArray(prevChat) ? [...prevChat, updatedChatWithUserInput, { role: "model", parts: [{ text: modelResponse }] }] : [updatedChatWithUserInput, { role: "model", parts: [{ text: modelResponse }] }];
+                    const lastModelMessage = updatedChat.filter(message => message.role === "model").pop();
+                    if (lastModelMessage) {
+                        setLastMessages(lastModelMessage.parts[0].text);
+                    }
+                    return updatedChat;
+                });
                 setUserInput("");
+
+                setLastMessages(prevLastMessages => ({
+                    ...prevLastMessages,
+                    [chatId]: modelResponse,
+                }));
             }
         } catch (error: any) {
             console.error("Error from Gemini pro", error);
@@ -125,7 +144,16 @@ export default function ChatBot({ navigation, route }: any) {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Chat</Text>
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => navigation.navigate('Main', { lastMessage: lastMessage, chatId: chatId })} style={styles.backButton}>
+                    <Image source={require('../assets/iconBack.png')} style={styles.backIcon} />
+                </TouchableOpacity>
+                <Image source={require('../assets/iconMiPerfil.png')} style={styles.profileImage} />
+                <View >
+                    <Text style={styles.title}>{chatTitle}</Text>
+                </View>
+            </View>
+            <Text style={styles.title}>{chatTitle}</Text>
             <FlatList
                 data={chat}
                 renderItem={renderChatItem}
@@ -154,23 +182,43 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#fff",
-        padding: 20,
+    },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 12,
+        height: 70,
+        backgroundColor: '#0C1033',
+    },
+    backButton: {
+        marginRight: 12,
+    },
+    backIcon: {
+        width: 30,
+        height: 20,
+    },
+    profileImage: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        marginRight: 10,
+        marginLeft: 10,
     },
     title: {
-        fontSize: 24,
-        fontWeight: "bold",
-        marginBottom: 20,
-        marginTop: 20,
-        textAlign: "center",
+        fontSize: 25,
+        fontWeight: 'bold',
+        color: 'white',
     },
     chatContainer: {
         flexGrow: 1,
         justifyContent: "flex-end",
+        paddingHorizontal: 16,
     },
     inputContainer: {
         flexDirection: "row",
         alignItems: "center",
         marginTop: 10,
+        padding: 15,
     },
     input: {
         flex: 1,
@@ -184,7 +232,7 @@ const styles = StyleSheet.create({
     },
     button: {
         padding: 10,
-        backgroundColor: "#333",
+        backgroundColor: '#0C1033',
         borderRadius: 25,
     },
     buttonText: {
